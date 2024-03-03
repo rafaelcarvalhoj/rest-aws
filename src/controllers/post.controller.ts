@@ -42,6 +42,7 @@ export const createPost = async (post: {
   authorId: string;
   createdAt: string;
   image: string;
+  tags: string[];
 }) => {
   const params = {
     TableName: POST_TABLE,
@@ -58,6 +59,54 @@ export const createPost = async (post: {
 };
 
 // update posts
+export const updatePost = async (post: {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+  createdAt: string;
+  image: string;
+  tags: string[];
+}) => {
+  const params = {
+    TableName: POST_TABLE,
+    Item: post,
+  };
+
+  try {
+    await client.put(params).promise();
+    return post;
+  } catch (error) {
+    console.error("Error updating post:", error);
+    throw error;
+  }
+};
+
+export const updatePostTitle = async (postId: string, title: string) => {
+  const params = {
+    TableName: POST_TABLE,
+    Key: {
+      id: postId,
+    },
+    UpdateExpression: "SET #title = :title",
+    ExpressionAttributeNames: {
+      "#title": "title",
+    },
+    ExpressionAttributeValues: {
+      ":title": title,
+    },
+    ReturnValues: "ALL_NEW",
+  };
+
+  try {
+    await client.update(params).promise();
+    return { id: postId, title };
+  } catch (error) {
+    console.error("Error updating post title:", error);
+    throw error;
+  }
+};
+
 export const updatePostDescription = async (
   postId: string,
   description: string
@@ -138,35 +187,6 @@ export const updatePostImage = async (postId: string, image: string) => {
   }
 };
 
-export const updatePost = async (post: {
-  id: string;
-  title?: string;
-  content?: string;
-}) => {
-  const params = {
-    TableName: POST_TABLE,
-    Key: {
-      id: post.id,
-    },
-    UpdateExpression: "SET #title = :title, content = :content",
-    ExpressionAttributeNames: {
-      "#title": "title",
-    },
-    ExpressionAttributeValues: {
-      ":title": post.title || null,
-      ":content": post.content || null,
-    },
-    ReturnValues: "ALL_NEW",
-  };
-
-  try {
-    await client.update(params).promise();
-    return post;
-  } catch (error) {
-    console.error("Error updating post:", error);
-    throw error;
-  }
-};
 // delete posts
 export const deletePost = async (postId: string) => {
   const params = {
