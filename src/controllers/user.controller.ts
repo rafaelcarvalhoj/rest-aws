@@ -211,7 +211,8 @@ export const login = async (email: string, password: string) => {
       return false;
     }
     const user = data.Items?.[0];
-    if (bcrypt.compare(password, user?.password)) {
+    const match = await bcrypt.compare(password, user?.password);
+    if (match) {
       return { ...user, password: undefined };
     }
     return false;
