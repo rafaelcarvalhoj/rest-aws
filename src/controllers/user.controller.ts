@@ -207,13 +207,11 @@ export const login = async (email: string, password: string) => {
       },
     };
     const data = await client.scan(params).promise();
-    console.log(data);
     if (data.Count === 0) {
       return false;
     }
-    const user = data.Items?.[0]; // Fix: Add nullish coalescing operator
+    const user = data.Items?.[0];
     if (bcrypt.compare(password, user?.password)) {
-      // Fix: Add nullish coalescing operator
       return { ...user, password: undefined };
     }
     return false;
