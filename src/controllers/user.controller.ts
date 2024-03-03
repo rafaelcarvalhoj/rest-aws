@@ -1,4 +1,5 @@
 import { client } from "../database";
+const bcrypt = require("bcrypt");
 
 const USER_TABLE = "vts-portal-users";
 
@@ -63,14 +64,15 @@ export const createUser = async (user: {
   role: string;
   createdAt: string;
 }) => {
-  const params = {
-    TableName: USER_TABLE,
-    Item: user,
-  };
-
   try {
+    const hashedPassword = bcrypt.hashSync(user.password, 10);
+    const params = {
+      TableName: USER_TABLE,
+      Item: { ...user, password: hashedPassword },
+      ReturnValues: "ALL_OLD",
+    };
     await client.put(params).promise();
-    return user;
+    return { ...user, password: undefined };
   } catch (error) {
     console.error("Error creating user:", error);
     throw error;
@@ -105,20 +107,23 @@ export const updateUserPassword = async (user: {
   id: string;
   password: string;
 }) => {
-  const params = {
-    TableName: USER_TABLE,
-    Key: {
-      id: user.id,
-    },
-    UpdateExpression: "SET password = :password",
-    ExpressionAttributeValues: {
-      ":password": user.password,
-    },
-    ReturnValues: "ALL_NEW",
-  };
-
   try {
-    await client.update(params).promise();
+    const hashedPassword = bcrypt.hashSync(user.password, 10);
+    const params = {
+      TableName: USER_TABLE,
+      Key: {
+        id: user.id,
+      },
+      UpdateExpression: "SET password = :password",
+      ExpressionAttributeValues: {
+        ":password": hashedPassword,
+      },
+      ReturnValues: "ALL_NEW",
+    };
+    const data = await client.update(params).promise();
+    if (!data.Attributes) {
+      return null;
+    }
     return user;
   } catch (error) {
     console.error("Error updating user password:", error);
@@ -182,10 +187,38 @@ export const deleteUser = async (id: string) => {
   };
 
   try {
-    await client.delete(params).promise();
-    return id;
+    const data = await client.delete(params).promise();
+    return data;
   } catch (error) {
     console.error("Error deleting user:", error);
+    throw error;
+  }
+};
+
+export const login = async (email: string, password: string) => {
+  try {
+    const params = {
+      TableName: USER_TABLE,
+      ScanFilter: {
+        email: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [email],
+        },
+      },
+    };
+    const data = await client.scan(params).promise();
+    console.log(data);
+    if (data.Count === 0) {
+      return false;
+    }
+    const user = data.Items?.[0]; // Fix: Add nullish coalescing operator
+    if (bcrypt.compare(password, user?.password)) {
+      // Fix: Add nullish coalescing operator
+      return { ...user, password: undefined };
+    }
+    return false;
+  } catch (error) {
+    console.error("Error logging in user:", error);
     throw error;
   }
 };
