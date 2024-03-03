@@ -1,0 +1,39 @@
+name: Push-to-EC2
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v3
+
+      - name: Using Node.js 20.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the app
+        run: npm run build
+
+      - name: Copy files with SSH
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.EC2_KEY}}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "./"
+          REMOTE_HOST: ${{secrets.EC2_HOST}}
+          REMOTE_USER: ${{secrets.EC2_USERNAME}}
+          TARGET: "~/app"
+          EXCLUDE: "/node_modules/, **.env, rebuild_app.sh, watcher.sh"
+          SCRIPT_AFTER: |
+            cd /home/${{secrets.EC2_USERNAME}}/app
+            npm install
+            npx pm2 restart all

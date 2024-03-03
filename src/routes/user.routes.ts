@@ -13,7 +13,7 @@ userRouter.post("/", async (req: Request, res: Response) => {
     user.createdAt = new Date().toISOString();
     const data = await userController.createUser(user);
     if (!data) {
-      res.status(400).send({ message: "Erro ao criar usuário" });
+      res.status(400).send({ message: "Error creating user" });
       return;
     }
     res.status(201).send(data);
@@ -28,7 +28,6 @@ userRouter.get("/", async (req: Request, res: Response) => {
     const data = await userController.getUsers();
     res.status(200).send(data);
   } catch (error) {
-    console.error("Error getting users:", error);
     res.status(500).send(error);
   }
 });
@@ -38,13 +37,12 @@ userRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const user = await userController.login(email, password);
     if (!user) {
-      res.status(401).send({ message: "Credenciais inválidas" });
+      res.status(401).send({ message: "Invalid Credentials" });
       return;
     }
     res.status(200).send(user);
   } catch (error) {
-    console.error("Erro ao fazer login:", error);
-    res.status(500).send({ message: "Erro interno do servidor" });
+    res.status(500).send({ message: "Server Error" });
   }
 });
 
@@ -52,7 +50,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
   try {
     const data = await userController.getUser(req.params.id);
     if (!data) {
-      res.status(404).send({ message: "Usuário não encontrado" });
+      res.status(404).send({ message: "User not Found" });
       return;
     }
     res.status(200).send(data);
