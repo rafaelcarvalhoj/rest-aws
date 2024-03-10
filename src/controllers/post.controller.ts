@@ -213,19 +213,21 @@ export const getPrevAndNextPost = async (postId: string) => {
   try {
     const data = await client.scan(params).promise();
     const posts = data.Items;
-    // order posts by date
-    posts?.sort((a: any, b: any) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-    // find index of current post
-    const index = posts?.findIndex((post: any) => post.id === postId) ?? 0;
-    // get prev and next posts
-    const nextPost = posts?.[index + 1];
-    if (index > 0) {
-      const prevPost = posts?.[index - 1];
-      return { prevPost, nextPost };
+
+    if (!Array.isArray(posts)) {
+      return {};
     }
-    return { nextPost };
+
+    // order posts by date
+    posts.sort((a: any, b: any) => {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+    const index = posts.findIndex((post: any) => post.id === postId);
+    const lenght = posts.length;
+
+    const prevPost = posts[(index - 1) % lenght];
+    const nextPost = posts[(index + 1) % lenght];
+    return { prevPost, nextPost };
   } catch (error) {
     console.error("Error getting prev and next posts:", error);
     throw error;

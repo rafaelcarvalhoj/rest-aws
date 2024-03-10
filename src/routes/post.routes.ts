@@ -52,7 +52,10 @@ postRouter.get("/card", async (req: Request, res: Response) => {
 postRouter.get("/:id", async (req: Request, res: Response) => {
   try {
     const data = await postController.getPostById(req.params.id);
-    res.status(200).send(data);
+    if (data) {
+      const authorProps = await postController.getAuthorProps(data.authorId);
+      res.status(200).send({ ...data, authorProps, authorId: undefined });
+    }
   } catch (error) {
     console.error("Error getting post:", error);
     res.status(500).send(error);
