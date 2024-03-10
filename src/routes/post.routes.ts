@@ -28,6 +28,27 @@ postRouter.get("/", async (req: Request, res: Response) => {
   }
 });
 
+postRouter.get("/card", async (req: Request, res: Response) => {
+  console.log("get all post card props");
+  try {
+    let data = await postController.getAllPostCardProps();
+    if (data) {
+      data = await Promise.all(
+        data.map(async (post: any) => {
+          post.authorProps = await postController.getAuthorProps(post.authorId);
+          post.authorId = undefined;
+          return post;
+        })
+      );
+    }
+    console.log(data);
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error getting post:", error);
+    res.status(500).send(error);
+  }
+});
+
 postRouter.get("/:id", async (req: Request, res: Response) => {
   try {
     const data = await postController.getPostById(req.params.id);
@@ -92,6 +113,20 @@ postRouter.get("/prevnext/:id", async (req: Request, res: Response) => {
   try {
     const data = await postController.getPrevAndNextPost(req.params.id);
     res.status(200).send(data);
+  } catch (error) {
+    console.error("Error getting post:", error);
+    res.status(500).send(error);
+  }
+});
+
+postRouter.get("/card/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await postController.getPostCardProps(req.params.id);
+    if (!data) {
+      res.status(404).send("Post not found");
+    }
+    const authorProps = await postController.getAuthorProps(data?.authorId);
+    res.status(200).send({ ...data, authorProps, authorId: undefined });
   } catch (error) {
     console.error("Error getting post:", error);
     res.status(500).send(error);

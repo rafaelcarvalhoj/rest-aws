@@ -231,3 +231,50 @@ export const getPrevAndNextPost = async (postId: string) => {
     throw error;
   }
 };
+
+export const getAuthorProps = async (authorId: string) => {
+  const params = {
+    TableName: "vts-portal-users",
+    Key: {
+      id: authorId,
+    },
+  };
+
+  try {
+    const data = await client.get(params).promise();
+    if (data.Item) {
+      const { name, image } = data.Item;
+      return { name, image };
+    }
+  } catch (error) {
+    console.error("Error getting author props:", error);
+    throw error;
+  }
+};
+
+export const getPostCardProps = async (postId: string) => {
+  try {
+    const data = await getPostById(postId);
+    if (data) {
+      const { title, description, image, tags, authorId } = data;
+      return { title, description, image, tags, authorId };
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllPostCardProps = async () => {
+  try {
+    const data = await getPosts();
+    if (data) {
+      return data.map((post: any) => {
+        const { id, title, description, image, tags, authorId, createdAt } =
+          post;
+        return { id, title, description, image, tags, authorId, createdAt };
+      });
+    }
+  } catch (error) {
+    throw error;
+  }
+};
