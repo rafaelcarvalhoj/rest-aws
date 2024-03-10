@@ -88,4 +88,14 @@ postRouter.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
+postRouter.get("/prevnext/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await postController.getPrevAndNextPost(req.params.id);
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error getting post:", error);
+    res.status(500).send(error);
+  }
+});
+
 export default postRouter;

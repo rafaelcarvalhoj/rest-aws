@@ -204,3 +204,30 @@ export const deletePost = async (postId: string) => {
     throw error;
   }
 };
+
+export const getPrevAndNextPost = async (postId: string) => {
+  const params = {
+    TableName: POST_TABLE,
+  };
+
+  try {
+    const data = await client.scan(params).promise();
+    const posts = data.Items;
+    // order posts by date
+    posts?.sort((a: any, b: any) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    // find index of current post
+    const index = posts?.findIndex((post: any) => post.id === postId) ?? 0;
+    // get prev and next posts
+    const nextPost = posts?.[index + 1];
+    if (index > 0) {
+      const prevPost = posts?.[index - 1];
+      return { prevPost, nextPost };
+    }
+    return { nextPost };
+  } catch (error) {
+    console.error("Error getting prev and next posts:", error);
+    throw error;
+  }
+};
