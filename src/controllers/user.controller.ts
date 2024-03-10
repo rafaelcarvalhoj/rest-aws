@@ -3,6 +3,25 @@ const bcrypt = require("bcrypt");
 
 const USER_TABLE = "vts-portal-users";
 
+interface Resume {
+  socialMedia: string[];
+  articles: string[];
+  diploma: string[];
+  skills: string[];
+  microResume: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  role: string;
+  createdAt: string;
+  avatar: string;
+}
+
 // get all
 export const getUsers = async () => {
   const params = {
@@ -75,6 +94,61 @@ export const createUser = async (user: {
     return { ...user, password: undefined };
   } catch (error) {
     console.error("Error creating user:", error);
+    throw error;
+  }
+};
+
+// check password
+export const checkPassword = async (id: string, password: string) => {
+  try {
+    const params = {
+      TableName: USER_TABLE,
+      Key: {
+        id: id,
+      },
+    };
+    const data = await client.get(params).promise();
+    console.log(data.Item);
+    if (!data.Item) {
+      return null;
+    }
+    const match: boolean = await bcrypt.compare(password, data.Item.password);
+    if (match) {
+      return match;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error checking user password:", error);
+    throw error;
+  }
+};
+
+// update all user fields
+export const updateUser = async (userId: string, user: User) => {
+  const params = {
+    TableName: USER_TABLE,
+    Key: {
+      id: userId,
+    },
+    UpdateExpression:
+      "SET #name = :name, email = :email, phone = :phone, avatar = :avatar",
+    ExpressionAttributeNames: {
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":name": user.name,
+      ":email": user.email,
+      ":phone": user.phone,
+      ":avatar": user.avatar,
+    },
+    ReturnValues: "ALL_NEW",
+  };
+
+  try {
+    await client.update(params).promise();
+    return user;
+  } catch (error) {
+    console.error("Error updating user:", error);
     throw error;
   }
 };

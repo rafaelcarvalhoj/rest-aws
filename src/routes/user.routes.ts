@@ -32,6 +32,42 @@ userRouter.get("/", async (req: Request, res: Response) => {
   }
 });
 
+userRouter.get("/password/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await userController.checkPassword(
+      req.params.id,
+      req.body.password
+    );
+    if (data === null) {
+      res.status(404).send({ message: "Usuário não encontrado" });
+      return;
+    }
+
+    if (!data) {
+      res.status(401).send({ message: "Senha inválida" });
+      return;
+    }
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error getting user password:", error);
+    res.status(500).send(error);
+  }
+});
+
+userRouter.put("/update/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await userController.updateUser(req.params.id, req.body);
+    if (!data) {
+      res.status(404).send({ message: "Usuário não encontrado" });
+      return;
+    }
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send(error);
+  }
+});
+
 userRouter.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
