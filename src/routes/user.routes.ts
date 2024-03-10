@@ -5,6 +5,31 @@ import * as userController from "../controllers/user.controller";
 
 const userRouter = Router();
 
+interface SocialMedia {
+  provider: string;
+  url: string;
+}
+
+interface Resume {
+  socialMedia: SocialMedia[];
+  articles: string[];
+  diploma: string[];
+  skills: string[];
+  microResume: string;
+  projectRole: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  role: string;
+  createdAt: string;
+  avatar: string;
+}
+
 userRouter.post("/", async (req: Request, res: Response) => {
   try {
     const user = req.body;
@@ -175,6 +200,49 @@ userRouter.delete("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).send(error);
+  }
+});
+
+userRouter.post("/resume/:id", async (req: Request, res: Response) => {
+  try {
+    const data = userController.createResume(req.params.id, req.body);
+    if (!data) {
+      res.status(404).send({ message: "User nor found" });
+    }
+    res.status(201).send({ message: "Resume created" });
+  } catch (error) {
+    console.error("Error updating user resume:", error);
+    res.status(500).send(error);
+  }
+});
+
+userRouter.get("/resume/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await userController.getResume(req.params.id);
+    if (!data) {
+      res.status(404).send({ message: "User not found" });
+    }
+    return res.status(200).send({
+      ...data,
+      createdAt: undefined,
+      password: undefined,
+      role: undefined,
+      phone: undefined,
+    });
+  } catch (error) {
+    res.send(500).send(error);
+  }
+});
+
+userRouter.put("/resume/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await userController.updateResume(req.params.id, req.body);
+    if (!data) {
+      res.status(404).send({ message: "User not found" });
+    }
+    return res.status(200).send({ message: "Resume updated" });
+  } catch (error) {
+    res.send(500).send(error);
   }
 });
 

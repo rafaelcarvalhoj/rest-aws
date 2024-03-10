@@ -3,12 +3,18 @@ const bcrypt = require("bcrypt");
 
 const USER_TABLE = "vts-portal-users";
 
+interface SocialMedia {
+  provider: string;
+  url: string;
+}
+
 interface Resume {
-  socialMedia: string[];
+  socialMedia: SocialMedia[];
   articles: string[];
   diploma: string[];
   skills: string[];
   microResume: string;
+  projectRole: string;
 }
 
 interface User {
@@ -51,24 +57,6 @@ export const getUser = async (id: string) => {
     return data.Item;
   } catch (error) {
     console.error("Error getting user:", error);
-    throw error;
-  }
-};
-
-// check id
-export const checkUserId = async (id: string) => {
-  const params = {
-    TableName: USER_TABLE,
-    Key: {
-      id: id,
-    },
-  };
-
-  try {
-    const data = await client.get(params).promise();
-    return !!data.Item;
-  } catch (error) {
-    console.error("Error checking user ID:", error);
     throw error;
   }
 };
@@ -292,6 +280,88 @@ export const login = async (email: string, password: string) => {
     return false;
   } catch (error) {
     console.error("Error logging in user:", error);
+    throw error;
+  }
+};
+
+// create user resume
+export const createResume = async (id: string, resume: Resume) => {
+  const user = getUser(id);
+  if (!user) {
+    return null;
+  }
+  const params = {
+    TableName: USER_TABLE,
+    Key: {
+      id: id,
+    },
+    UpdateExpression:
+      "SET socialMedia = :socialMedia, articles = :articles, diploma = :diploma, skills = :skills, microResume = :microResume projectRole = :projectRole",
+    ExpressionAttributeValues: {
+      ":socialMedia": resume.socialMedia,
+      ":articles": resume.articles,
+      ":diploma": resume.diploma,
+      ":skills": resume.skills,
+      ":microResume": resume.microResume,
+      ":projectRole": resume.projectRole,
+    },
+    ReturnValues: "ALL_NEW",
+  };
+
+  try {
+    await client.update(params).promise();
+    return resume;
+  } catch (error) {
+    console.error("Error creating user resume:", error);
+    throw error;
+  }
+};
+
+export const getResume = async (id: string) => {
+  const params = {
+    TableName: USER_TABLE,
+    Key: {
+      id: id,
+    },
+  };
+
+  try {
+    const data = await client.get(params).promise();
+    return data.Item;
+  } catch (error) {
+    console.error("Error getting user resume:", error);
+    throw error;
+  }
+};
+
+export const updateResume = async (id: string, resume: Resume) => {
+  const user = getUser(id);
+  if (!user) {
+    return null;
+  }
+  const params = {
+    TableName: USER_TABLE,
+    Key: {
+      id: id,
+    },
+    UpdateExpression:
+      "SET socialMedia = :socialMedia, articles = :articles, diploma = :diploma, skills = :skills, microResume = :microResume, projectRole = :projectRole",
+    ExpressionAttributeValues: {
+      ":socialMedia": resume.socialMedia,
+      ":articles": resume.articles,
+      ":diploma": resume.diploma,
+      ":skills": resume.skills,
+      ":microResume": resume.microResume,
+      ":projectRole": resume.projectRole,
+    },
+    ReturnValues: "ALL_NEW",
+  };
+
+  try {
+    await client.update(params).promise();
+    return resume;
+  } catch (error) {
+    console.error("Error updating user resume:", error);
     throw error;
   }
 };
