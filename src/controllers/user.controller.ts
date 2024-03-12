@@ -296,7 +296,7 @@ export const createResume = async (id: string, resume: Resume) => {
       id: id,
     },
     UpdateExpression:
-      "SET socialMedia = :socialMedia, articles = :articles, diploma = :diploma, skills = :skills, microResume = :microResume projectRole = :projectRole",
+      "SET socialMedia = :socialMedia, articles = :articles, diploma = :diploma, skills = :skills, microResume = :microResume, projectRole = :projectRole",
     ExpressionAttributeValues: {
       ":socialMedia": resume.socialMedia,
       ":articles": resume.articles,

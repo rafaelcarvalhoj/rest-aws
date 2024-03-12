@@ -245,8 +245,8 @@ export const getAuthorProps = async (authorId: string) => {
   try {
     const data = await client.get(params).promise();
     if (data.Item) {
-      const { name, image } = data.Item;
-      return { name, image };
+      const { name, image, socialMedia } = data.Item;
+      return { name, image, socialMedia };
     }
   } catch (error) {
     console.error("Error getting author props:", error);
