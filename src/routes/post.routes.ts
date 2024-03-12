@@ -49,6 +49,18 @@ postRouter.get("/card", async (req: Request, res: Response) => {
   }
 });
 
+postRouter.get("/author/:id", async (req: Request, res: Response) => {
+  try {
+    const data = await postController.getAllPostAdminPropsByAuthor(
+      req.params.id
+    );
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error getting author:", error);
+    res.status(500).send(error);
+  }
+});
+
 postRouter.get("/:id", async (req: Request, res: Response) => {
   try {
     const data = await postController.getPostById(req.params.id);

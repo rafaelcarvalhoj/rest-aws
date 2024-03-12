@@ -280,3 +280,19 @@ export const getAllPostCardProps = async () => {
     throw error;
   }
 };
+
+export const getAllPostAdminPropsByAuthor = async (authorId: string) => {
+  try {
+    const data = await getPosts();
+    if (data) {
+      return data
+        .filter((post: any) => post.authorId === authorId)
+        .map((post: any) => {
+          const { id, title, createdAt } = post;
+          return { id, title, createdAt };
+        });
+    }
+  } catch (error) {
+    throw error;
+  }
+};
